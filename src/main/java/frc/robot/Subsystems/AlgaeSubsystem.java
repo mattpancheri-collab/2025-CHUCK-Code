@@ -3,8 +3,9 @@ package frc.robot.Subsystems;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.configs.TalonFXSConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
-import com.ctre.phoenix6.controls.MotionMagicDutyCycle;
+import com.ctre.phoenix6.controls.PositionDutyCycle;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.hardware.TalonFXS;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.MotorArrangementValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
@@ -17,20 +18,23 @@ public class AlgaeSubsystem extends SubsystemBase {
     private static AlgaeSubsystem instance;
 
 
-    //private final TalonFX algaeIntake;
+    private final TalonFXS algaeIntake; //FXS because minion motor
     private final TalonFX algaePivot;
     private final TalonFXConfiguration algaePivotConfig;
-    private final MotionMagicDutyCycle motionMagicControl;
+    private final TalonFXSConfiguration algaeIntakeConfig;
+
+    private final PositionDutyCycle positionDutyCycle = new PositionDutyCycle(0);
+
 
     // Position Setpoints........................................
-    double AlgaePivot_StowedPosition= 1;
-    double AlgaePivot_GroundPosition=2;
+    double AlgaePivot_StowedPosition= 0.7;
+    double AlgaePivot_GroundPosition= -0.72;
     double AlgaePivot_ScrubberPosition= -2.2;
 
 
     public AlgaeSubsystem() {
 
-        //algaeIntake = new TalonFX(13);
+        algaeIntake = new TalonFXS(13);
         algaePivot = new TalonFX(12);
 
         algaePivotConfig = new TalonFXConfiguration();
@@ -40,24 +44,19 @@ public class AlgaeSubsystem extends SubsystemBase {
             algaePivotConfig.Slot0.kS = 0.25; // IF 0.25 = Add 0.25 V output to overcome static friction
             algaePivotConfig.Slot0.kV = 0.00; // IF 0.12 = A velocity target of 1 rps results in 0.12 V output
             algaePivotConfig.Slot0.kA = 0.01; // IF 0.01 = An acceleration of 1 rps/s requires 0.01 V output
-
-                        
+         
             algaePivotConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
             algaePivotConfig.MotorOutput.Inverted =  InvertedValue.Clockwise_Positive;
 
-        // Set Motion Magic settings
-        motionMagicControl = new MotionMagicDutyCycle(0);
-            algaePivotConfig.MotionMagic.MotionMagicCruiseVelocity = 200; // rps
-            algaePivotConfig.MotionMagic.MotionMagicAcceleration = 100; // rps
-            algaePivotConfig.MotionMagic.MotionMagicJerk = 1600; // Target jerk rps/s/s (0.1 seconds)
-
-        algaePivot.getConfigurator().apply(algaePivotConfig);
+            algaePivot.getConfigurator().apply(algaePivotConfig);
 
 
-        TalonFXConfiguration brakeConfigs = new TalonFXConfiguration();
-            brakeConfigs.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+        algaeIntakeConfig = new TalonFXSConfiguration();
+            algaeIntakeConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+            algaeIntakeConfig.Commutation.MotorArrangement = MotorArrangementValue.Minion_JST;
 
-            //algaeIntake.getConfigurator().apply(brakeConfigs);
+            algaeIntake.getConfigurator().apply(algaeIntakeConfig);
+           
     }
 
     public static synchronized AlgaeSubsystem getInstance() {
@@ -68,7 +67,7 @@ public class AlgaeSubsystem extends SubsystemBase {
     }
 
     public void setPosition(double position) {
-        algaePivot.setControl(motionMagicControl.withPosition(position));
+        algaePivot.setControl(positionDutyCycle.withPosition(position));
     }
 
     public double getPosition() {
@@ -108,7 +107,7 @@ public class AlgaeSubsystem extends SubsystemBase {
     }
 
     public void algaeSpeed(double speed) {
-        //algaeIntake.setControl(new DutyCycleOut(speed));
+        algaeIntake.setControl(new DutyCycleOut(speed));
     }
 
 

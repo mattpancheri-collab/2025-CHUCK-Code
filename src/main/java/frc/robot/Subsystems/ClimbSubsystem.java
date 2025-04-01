@@ -29,13 +29,13 @@ public class ClimbSubsystem extends SubsystemBase {
 
     // Setpoints
     double ClimbPivot_StowedPosition = 1;
-    double ClimbPivot_PickupPosition = -28.115723;
+    double ClimbPivot_PickupPosition = 2.979004;
     double GripMotor_InPosition = 1;
     double GripMotor_OutPosition = 2;
 
     // Servo Angle
-    double brakeAngle = 0.15;
-    double looseAngle = 0;
+    double brakeAngle = 0.6;
+    double looseAngle = 0.3;
 
 
 
@@ -48,7 +48,7 @@ public class ClimbSubsystem extends SubsystemBase {
 
         //PIVOT Config...................................................
         climbPivotMasterConfig = new TalonFXConfiguration();
-            climbPivotMasterConfig.Slot0.kP = 0.3;
+            climbPivotMasterConfig.Slot0.kP = 0.1;
             climbPivotMasterConfig.Slot0.kI = 0;
             climbPivotMasterConfig.Slot0.kD = 0.000;
             climbPivotMasterConfig.Slot0.kS = 0.25; // IF 0.25 = Add 0.25 V output to overcome static friction

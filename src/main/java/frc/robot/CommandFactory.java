@@ -1,11 +1,16 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import frc.robot.Subsystems.AlgaeSubsystem;
 import frc.robot.Subsystems.ClimbSubsystem;
 import frc.robot.Subsystems.IntakeSubsystem;
+import frc.robot.Subsystems.IntakeSubsystemPivot;
 import frc.robot.Subsystems.ElevatorSubsystem;
 
 public class CommandFactory {
@@ -13,10 +18,12 @@ public class CommandFactory {
     private final AlgaeSubsystem algaeSubsystem;
     private final ClimbSubsystem climbSubsystem;
     private final IntakeSubsystem intakeSubsystem;
+    private final IntakeSubsystemPivot intakeSubsystemPivot;
     private final ElevatorSubsystem elevatorSubsystem;
 
     public CommandFactory(
             AlgaeSubsystem algaeSubsystem,
+            IntakeSubsystemPivot intakeSubsystemPivot,
             ClimbSubsystem climbSubsystem,
             IntakeSubsystem intakeSubsystem,
             ElevatorSubsystem elevatorSubsystem
@@ -25,6 +32,7 @@ public class CommandFactory {
             this.algaeSubsystem = algaeSubsystem;
             this.climbSubsystem = climbSubsystem;
             this.intakeSubsystem = intakeSubsystem;
+            this.intakeSubsystemPivot = intakeSubsystemPivot;
             this.elevatorSubsystem = elevatorSubsystem;
     }
 
@@ -33,79 +41,93 @@ public class CommandFactory {
    public Command levelOne() {
 
         return Commands.parallel(
-               intakeSubsystem.L1_IntakePosition(),
-               elevatorSubsystem.L1_ElevatorPosition()
+               elevatorSubsystem.L1_ElevatorPosition(),
+               intakeSubsystemPivot.L1_IntakePosition()
         );
    }
 
    public Command levelTwo() {
 
         return Commands.parallel(
-               intakeSubsystem.midBranch_IntakePosition(),
-               elevatorSubsystem.L2_ElevatorPosition()
+               elevatorSubsystem.L2_ElevatorPosition(),
+               intakeSubsystemPivot.midBranch_IntakePosition()
         );
    }
 
    public Command levelThree() {
 
         return Commands.parallel(
-               intakeSubsystem.midBranch_IntakePosition(),
-               elevatorSubsystem.L3_ElevatorPosition()
+               elevatorSubsystem.L3_ElevatorPosition(),
+               intakeSubsystemPivot.midBranch_IntakePosition()
         );
    }
 
    public Command levelFour() {
 
         return Commands.parallel(
-               intakeSubsystem.L4_IntakePosition(),
-               elevatorSubsystem.L4_ElevatorPosition()
+               elevatorSubsystem.L4_ElevatorPosition(),
+               intakeSubsystemPivot.L4_IntakePosition()
         );
    }
 
    public Command lowerAlgae() {
 
         return Commands.parallel(
-               intakeSubsystem.L1_IntakePosition(),
-               elevatorSubsystem.GroundAlgae_ElevatorPosition()
+               elevatorSubsystem.GroundAlgae_ElevatorPosition(),
+               intakeSubsystemPivot.L1_IntakePosition()
         );
    }
 
    public Command upperAlgae() {
 
         return Commands.parallel(
-               intakeSubsystem.L1_IntakePosition(),
-               elevatorSubsystem.L3_ElevatorPosition()
+               elevatorSubsystem.L3_ElevatorPosition(),
+               intakeSubsystemPivot.L1_IntakePosition()
         );
    }
 
    public Command humanStation() {
 
         return Commands.parallel(
-                intakeSubsystem.HumanStation_IntakePosition(),
-                elevatorSubsystem.HumanStation_ElevatorPosition()
+                elevatorSubsystem.HumanStation_ElevatorPosition(),
+                intakeSubsystemPivot.HumanStation_IntakePosition()
         );
    }
 
+   //does this need this & bargeSetpointTheSequel here?
    public Command bargeSetpointStart() {
 
         return Commands.parallel(
                 elevatorSubsystem.L4_ElevatorPosition(),
-                intakeSubsystem.L1_IntakePosition()
+                intakeSubsystemPivot.L1_IntakePosition()
         );
    }
 
    public Command bargeSetpointTheSequel() {
 
         return Commands.parallel(
-                elevatorSubsystem.L4_ElevatorPosition(),
-                intakeSubsystem.Barge_IntakePosition()
+                intakeSubsystemPivot.Barge_IntakePosition(),
+                elevatorSubsystem.L4_ElevatorPosition()
+                //intakeSubsystem.intakeTorqueCommand() 
         );
-   }
+ }
+
+ public Command bargeSetpointTheSequelStop() {
+
+     return Commands.sequence(
+          new RunCommand (() -> intakeSubsystem.intakeMotorSpeed(0.4, -0.4)).withTimeout(0.4),
+          new RunCommand (() -> intakeSubsystem.intakeMotorSpeed(-1.0, 1)).withTimeout(1),
+          new ParallelCommandGroup ( 
+               elevatorSubsystem.HumanStation_ElevatorPosition(),   
+               intakeSubsystemPivot.HumanStation_IntakePosition(),
+               new InstantCommand (() -> intakeSubsystem.intakeMotorSpeed(0, 0))).withTimeout(0.2)
+     );
+}
 
    public Command coralAutoBranch() {
 
         return Commands.sequence(
-                new RunCommand (() -> intakeSubsystem.intakeMotorSpeed(-0.8, 0.8)).withTimeout(.4),
+                new RunCommand (() -> intakeSubsystem.intakeMotorSpeed(-0.6, 0.6)).withTimeout(.4),
                 new RunCommand (() -> intakeSubsystem.intakeMotorSpeed(0, 0)).withTimeout(.25)
         );
    }
@@ -121,10 +143,29 @@ public class CommandFactory {
    public Command coralIntake() {
           
         return Commands.sequence(
-                new RunCommand (() -> intakeSubsystem.intakeMotorSpeed(1, -1)).withTimeout(3),
+                new RunCommand (() -> intakeSubsystem.intakeMotorSpeed(0.8, -0.8)).withTimeout(3),
                 new RunCommand (() -> intakeSubsystem.intakeMotorSpeed(0, 0)).withTimeout(0.25)
         );
    }
+
+   //test and fix 
+   public Command algaeGroundPickup() {
+     return Commands.parallel(
+     intakeSubsystem.intakeTorqueCommand(),    
+     intakeSubsystemPivot.groundAlgaePosition(),
+     algaeSubsystem.AlgaePivot_GroundPosition(),
+     new RunCommand (() -> algaeSubsystem.algaeSpeed(-1))  //will this cause same issue as intake pivot subsystem
+     );
+ }
+ 
+ //test and fix
+ public Command algaeGroundPickupStop() {
+     return Commands.parallel(
+     intakeSubsystem.intakeTorqueCommand(),    
+     algaeSubsystem.AlgaePivot_StowedPosition(),
+     new RunCommand (() -> algaeSubsystem.algaeSpeed(0))  //will this cause same issue as intake pivot subsystem
+     );
+ }
 
    public Command climbBrake() {
 

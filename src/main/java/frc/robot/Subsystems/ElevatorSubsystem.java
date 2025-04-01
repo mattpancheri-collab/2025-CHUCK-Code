@@ -24,7 +24,7 @@ public class ElevatorSubsystem extends SubsystemBase {
     double L1_ElevatorPosition = -0.2;
     double L2_ElevatorPosition = -9.5;
     double L3_ElevatorPosition = -25;
-    double L4_ElevatorPosition = -48.2;
+    double L4_ElevatorPosition = -51;
 
     double HumanStation_ElevatorPosition= -8.25;
     double Processor_ElevatorPosition = 2;
@@ -47,7 +47,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 
 
         elevatorMasterConfig = new TalonFXConfiguration();
-            elevatorMasterConfig.Slot0.kP = 0.25;
+            elevatorMasterConfig.Slot0.kP = 0.26;
             elevatorMasterConfig.Slot0.kI = 0.0;
             elevatorMasterConfig.Slot0.kD = 0.0;
             elevatorMasterConfig.Slot0.kV = 0.05; 
@@ -131,13 +131,10 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     public void resetElevatorEncoder() {
         elevatorMaster.setPosition(0);
-        elevatorFollower.setPosition(0);
     }
     
-
     public void elevatorSpeed(double speed)   {
         elevatorMaster.setControl(new DutyCycleOut(speed));
-        //elevatorFollower.setControl(new DutyCycleOut(speed));
     }
 
     

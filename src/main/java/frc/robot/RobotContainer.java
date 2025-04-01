@@ -19,8 +19,8 @@ import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.StartEndCommand;
@@ -32,6 +32,7 @@ import frc.robot.Subsystems.ClimbSubsystem;
 import frc.robot.Subsystems.CommandSwerveDrivetrain;
 import frc.robot.Subsystems.ElevatorSubsystem;
 import frc.robot.Subsystems.IntakeSubsystem;
+import frc.robot.Subsystems.IntakeSubsystemPivot;
 import frc.robot.generated.TunerConstants;
 
 public class RobotContainer {
@@ -56,6 +57,7 @@ public class RobotContainer {
 
      // Subsystems
      final AlgaeSubsystem algaeSubsystem;
+     final IntakeSubsystemPivot intakeSubsystemPivot;
      final ClimbSubsystem climbSubsystem;
      final ElevatorSubsystem elevatorSubsystem;
      final IntakeSubsystem intakeSubsystem;
@@ -66,16 +68,24 @@ public class RobotContainer {
     // Auto Selector
     private final SendableChooser<Command> autoChooser;
 
+    //cancels intakeTorqueCommand
+    private final Command torqueHoldCommand;
+
+
     public RobotContainer() {
 
     
       // Subystems part 2 electric boogaloo
       algaeSubsystem = new AlgaeSubsystem();
+      intakeSubsystemPivot = new IntakeSubsystemPivot();
       climbSubsystem = new ClimbSubsystem();
       elevatorSubsystem = new ElevatorSubsystem();
       intakeSubsystem = new IntakeSubsystem();
       
-      commandFactory = new CommandFactory(algaeSubsystem, climbSubsystem, intakeSubsystem, elevatorSubsystem);
+      commandFactory = new CommandFactory(algaeSubsystem, intakeSubsystemPivot, climbSubsystem, intakeSubsystem, elevatorSubsystem);
+
+      //cancels intakeTorqueCommand
+      torqueHoldCommand = intakeSubsystem.intakeTorqueCommand();
 
 
       /* Register Named Commands */
@@ -84,16 +94,17 @@ public class RobotContainer {
         NamedCommands.registerCommand("coralTrough", commandFactory.coralAutoTrough());
         NamedCommands.registerCommand("levelOne", commandFactory.levelOne());
         NamedCommands.registerCommand("levelTwo", commandFactory.levelTwo());
-        NamedCommands.registerCommand("levelFour", commandFactory.levelFour().withTimeout(1.5));
-        NamedCommands.registerCommand("lowerAlgae", commandFactory.lowerAlgae().withTimeout(4));
+        NamedCommands.registerCommand("levelFour", commandFactory.levelFour().withTimeout(0.25));
+        NamedCommands.registerCommand("lowerAlgae", commandFactory.lowerAlgae().withTimeout(0.25));
         NamedCommands.registerCommand("upperAlgae", commandFactory.upperAlgae());
-        NamedCommands.registerCommand("humanStation", commandFactory.humanStation());
+        NamedCommands.registerCommand("humanStation", commandFactory.humanStation().withTimeout(0.25));
         NamedCommands.registerCommand("bargeStart", commandFactory.bargeSetpointStart());
         NamedCommands.registerCommand("bargeSetpoint", commandFactory.bargeSetpointTheSequel());
-        NamedCommands.registerCommand("coralIntake", commandFactory.coralIntake());
-        NamedCommands.registerCommand("constantIntake", new InstantCommand (() -> intakeSubsystem.intakeMotorSpeed(0.5, -0.5)).withTimeout(5));
-        NamedCommands.registerCommand("intakeStop", new InstantCommand(() -> intakeSubsystem.intakeMotorSpeed(0, 0)).withTimeout(0.25));
-        NamedCommands.registerCommand("algaeShoot", new InstantCommand (() -> intakeSubsystem.intakeMotorSpeed(-1, 1)).withTimeout(0.5));
+        NamedCommands.registerCommand("bargeShoot", commandFactory.bargeSetpointTheSequelStop());
+        NamedCommands.registerCommand("coralIntake", commandFactory.coralIntake().withTimeout(0.05));
+        NamedCommands.registerCommand("constantIntake", torqueHoldCommand.withTimeout(3.5));
+        NamedCommands.registerCommand("intakeStop", new InstantCommand(() -> {CommandScheduler.getInstance().cancel(torqueHoldCommand);}).withTimeout(0.25));
+        NamedCommands.registerCommand("algaeShoot", new InstantCommand (() -> intakeSubsystem.intakeMotorSpeed(-1, 1)));
   
 
       // Create the autoChooser
@@ -102,6 +113,8 @@ public class RobotContainer {
 
         configureBindings();
         configureAutoSelector();
+
+
     }
 
     private void configureAutoSelector() {
@@ -154,28 +167,35 @@ public class RobotContainer {
 
 //Coral Outtake/Shoot
 
-    driver.rightTrigger().whileTrue(
+    driver.rightTrigger().whileTrue(new SequentialCommandGroup(
+        new InstantCommand(() -> {
+            CommandScheduler.getInstance().cancel(torqueHoldCommand);
+        }).andThen(
             new StartEndCommand(
                 // When the button is held down, check if the elevator is at the L1 position
                 () -> {
                     if (elevatorSubsystem.isAtPositionSetpoint(elevatorSubsystem.getL1ElevatorPosition())) {
-                        intakeSubsystem.intakeMotorSpeed(-6, 0.35);
+                        intakeSubsystem.intakeMotorSpeed(-6, 0.35); //Shoot Coral w/ Spin
                     } else {
-                        intakeSubsystem.intakeMotorSpeed(-0.8, 0.8);
+                        intakeSubsystem.intakeMotorSpeed(-0.6, 0.6); //Regular Coral Shot
                     }
                 },
                 // When the button is released, stop the intake motor and return elevator to HumanStation
                 () -> intakeSubsystem.intakeMotorSpeed(0, 0)  
             )
-        );
+        )));
 
+    //Returns Elevator to Coral Station Position
     driver.rightTrigger().onFalse(commandFactory.humanStation());
 
 //Coral Intake
 
-    // Coral Intake – Does NOT use the distance sensor yet
-    driver.leftTrigger().whileTrue(new StartEndCommand(() -> intakeSubsystem.intakeMotorSpeed(0.7,-0.7),
-                                                       () -> intakeSubsystem.intakeMotorSpeed(0,0)));
+    // Coral Intake – Does NOT use the distance sensor yete
+    driver.leftTrigger().whileTrue(new SequentialCommandGroup(
+        new InstantCommand(() -> {
+            CommandScheduler.getInstance().cancel(torqueHoldCommand);
+        }).andThen(new StartEndCommand(() -> intakeSubsystem.intakeMotorSpeed(0.8,-0.8),
+                                       () -> intakeSubsystem.intakeMotorSpeed(0,0)))));
 
 // ELEVATOR
 
@@ -183,60 +203,82 @@ public class RobotContainer {
 
 // CLIMB SERVO
 
+        //Activate Brake
         driver.povDown().onTrue(new InstantCommand (() -> {climbSubsystem.ServoBrake();}));
 
+        //De-Activate Brake
         driver.povUp().onTrue(new InstantCommand (() -> {climbSubsystem.ServoLoose();}));
 
 
 /*......................OPERATOR CONTROLLER.............................. */
 
-//Algae Outtake/Shoot
+//Algae
 
-operator.rightTrigger().whileTrue(
-    new StartEndCommand(
-        // When the button is held down, check if the elevator is at the L1 position
-        () -> intakeSubsystem.intakeMotorSpeed(-1, 1),
-        // When the button is released, stop the intake motor and return elevator to HumanStation
-        () -> intakeSubsystem.intakeMotorSpeed(0, 0)  
-    )
-);
+    //intake algae
+    operator.leftTrigger().whileTrue (intakeSubsystem.intakeTorqueCommand());    //Torque Intake
+    operator.leftTrigger().onFalse(new SequentialCommandGroup(                   //Shoot On Release
+            new InstantCommand(() -> {
+                CommandScheduler.getInstance().cancel(torqueHoldCommand);
+            }).andThen(commandFactory.bargeSetpointTheSequelStop())
+        ));
+ 
 
-operator.rightTrigger().onFalse(commandFactory.humanStation());
+    //ground algae
+    operator.rightTrigger().whileTrue(commandFactory.algaeGroundPickup());      //Ground Intake Command
+    operator.rightTrigger().onFalse(commandFactory.algaeGroundPickupStop());    //Transfer
 
-//Algae Intake
-
-    operator.leftTrigger().whileTrue(new SequentialCommandGroup(
+    //outake algae
+    /*operator.rightTrigger().whileTrue(new SequentialCommandGroup(
         new InstantCommand(()->{
-            intakeSubsystem.intakeMotorSpeed(0.5, -0.5);}),
+            intakeSubsystem.intakeMotorSpeed(-1, 1);}),
         new WaitCommand(1),
         new InstantCommand(() -> {
-            intakeSubsystem.HumanStation_IntakePosition();
+            intakeSubsystemPivot.HumanStation_IntakePosition();
         })))
         .onFalse(new SequentialCommandGroup(
         new InstantCommand(()-> {
-            intakeSubsystem.intakeMotorSpeed(0.45, -0.45);
-        })));
+            intakeSubsystem.intakeMotorSpeed(0, 0);
+        })));*/
+
+    //Barge
+
+        //Barge Elevator Position
+        operator.leftStick().onTrue(new SequentialCommandGroup(
+            commandFactory.humanStation().withTimeout(0.2),
+            commandFactory.bargeSetpointTheSequel()
+        ));        
+       
+        //Reset Elevator/ Stop Intake Torque
+        /*operator.leftStick().whileFalse(new SequentialCommandGroup(
+            new InstantCommand(() -> {
+                CommandScheduler.getInstance().cancel(torqueHoldCommand);
+            }).andThen(commandFactory.bargeSetpointTheSequelStop())
+        ));*/
+
 
 // ELEVATOR
 
+    //Level 4 
     operator.b().onTrue(commandFactory.levelFour());
 
+    //Level 3
     operator.y().onTrue(commandFactory.levelThree());
 
+    //level 2
     operator.x().onTrue(commandFactory.levelTwo());
 
+    //level 1
     operator.a().onTrue(commandFactory.levelOne());
 
+    //Coral Station
     operator.povRight().onTrue(commandFactory.humanStation());
 
+    //Bottom Reef Algae
     operator.leftBumper().onTrue(commandFactory.lowerAlgae());
 
+    //Top Reef Algae
     operator.rightBumper().onTrue(commandFactory.upperAlgae());
 
-    operator.leftStick().onTrue(new SequentialCommandGroup(
-        commandFactory.bargeSetpointStart(),
-        commandFactory.bargeSetpointTheSequel()
-    ));
 
 // ALGAE PIVOT
 
@@ -244,14 +286,17 @@ operator.rightTrigger().onFalse(commandFactory.humanStation());
 
 // CORAL PIVOT
 
-    operator.povDown().whileTrue(new StartEndCommand(()-> intakeSubsystem.intakePivotSpeed(0.1),
-                                                ()->intakeSubsystem.intakePivotSpeed(0))); 
+    //Manual Coral Pivot Down
+    operator.povDown().whileTrue(new StartEndCommand(()-> intakeSubsystemPivot.intakePivotSpeed(0.1),
+                                                ()->intakeSubsystemPivot.intakePivotSpeed(0))); 
 
-    operator.povUp().whileTrue(new StartEndCommand(()-> intakeSubsystem.intakePivotSpeed(-0.1),
-                                                ()->intakeSubsystem.intakePivotSpeed(0)));
+    //Manual Coral Pivot Up
+    operator.povUp().whileTrue(new StartEndCommand(()-> intakeSubsystemPivot.intakePivotSpeed(-0.1),
+                                                ()->intakeSubsystemPivot.intakePivotSpeed(0)));
 
 // CLIMB
 
+    //Control w/ Joystick
     climbSubsystem.setDefaultCommand(new RunCommand(
         () -> {
             double speed = operator.getRightY(); // Invert for correct control
@@ -263,30 +308,59 @@ operator.rightTrigger().onFalse(commandFactory.humanStation());
         climbSubsystem
     ));
 
-    operator.povLeft().onTrue(climbSubsystem.ClimbPivot_PickupPosition());
+    //Setpoint for lifting robot
+    operator.povLeft().onTrue(climbSubsystem.ClimbPivot_PickupPosition()); //add servo & onFalse release servo?
     
 
 /*......................TESTING CONTROLLER.............................. */
 
-//ELEVATOR
- /*    test.leftBumper().whileTrue(new StartEndCommand(()-> elevatorSubsystem.elevatorSpeed(0.5),
-    ()->elevatorSubsystem.elevatorSpeed(0))); 
 
-    test.leftTrigger().whileTrue(new StartEndCommand(()-> elevatorSubsystem.elevatorSpeed(-0.5),
-    ()->elevatorSubsystem.elevatorSpeed(0))); 
+// algae ground intaking command (operator.leftTrigger is open)
+test.leftBumper().onTrue(intakeSubsystem.intakeTorqueCommand());
+test.leftBumper().whileTrue(commandFactory.algaeGroundPickup());
+test.leftBumper().onFalse(commandFactory.algaeGroundPickupStop());
+
+test.rightTrigger().whileTrue(new StartEndCommand(() -> intakeSubsystem.intakeMotorSpeed(-1, 1), 
+                                                  () -> intakeSubsystem.intakeMotorSpeed(0, 0)));
+
+test.a().onTrue(commandFactory.levelOne());
+
+//Barge Elevator Position
+test.leftStick().whileTrue(new SequentialCommandGroup(
+    new InstantCommand(() -> 
+        commandFactory.bargeSetpointStart()),
+    new InstantCommand(() -> 
+        commandFactory.bargeSetpointTheSequel())
+    ));
+
+
+//Reset Elevator/ Stop Intake Torque
+test.leftStick().onFalse(new SequentialCommandGroup(
+    new InstantCommand(() -> {
+        CommandScheduler.getInstance().cancel(torqueHoldCommand);
+    }).andThen(commandFactory.bargeSetpointTheSequelStop())
+));
+
+
+//ELEVATOR
+    //test.leftBumper().whileTrue(new StartEndCommand(()-> elevatorSubsystem.elevatorSpeed(0.5),
+    //()->elevatorSubsystem.elevatorSpeed(0))); 
+
+    //test.leftTrigger().whileTrue(new StartEndCommand(()-> elevatorSubsystem.elevatorSpeed(-0.5),
+    //()->elevatorSubsystem.elevatorSpeed(0))); 
 
     //test.a().onTrue(elevatorSubsystem.rotateToPosition(-41.164551));
-    test.a().onTrue(commandFactory.levelFour());
+    //test.a().onTrue(commandFactory.levelFour());
 
-    test.b().onTrue(commandFactory.levelThree());
+    //test.b().onTrue(commandFactory.levelThree());
 
-    test.rightBumper().onTrue(commandFactory.levelTwo());
+    //test.rightBumper().onTrue(commandFactory.levelTwo());
 
-    test.rightTrigger().onTrue(commandFactory.levelOne());
+    //test.rightTrigger().onTrue(commandFactory.levelOne());
 
 //CORAL
 
-    test.povDown().whileTrue(
+    /*test.povDown().whileTrue(
         new StartEndCommand(
             // When the button is held down, check if the elevator is at the L1 position
             () -> {
@@ -299,10 +373,10 @@ operator.rightTrigger().onFalse(commandFactory.humanStation());
             // When the button is released, stop the intake motor
             () -> intakeSubsystem.intakeMotorSpeed(0, 0)
         )
-    );
+    );*/
 
-    test.povUp().whileTrue(new StartEndCommand(()-> intakeSubsystem.intakeMotorSpeed(0.5, -0.5),
-                                                ()->intakeSubsystem.intakeMotorSpeed(0, 0))); 
+    //test.povUp().whileTrue(new StartEndCommand(()-> intakeSubsystem.intakeMotorSpeed(0.5, -0.5),
+    //                                            ()->intakeSubsystem.intakeMotorSpeed(0, 0))); 
 
     //test.rightBumper().whileTrue(new StartEndCommand(()-> intakeSubsystem.intakePivotSpeed(0.25),
     //                                            ()->intakeSubsystem.intakePivotSpeed(0))); 
@@ -321,16 +395,26 @@ operator.rightTrigger().onFalse(commandFactory.humanStation());
 
     //test.x().onTrue(algaeSubsystem.rotateToPosition(1));
 
+    /*test.leftTrigger().whileTrue(new StartEndCommand(() -> 
+            intakeSubsystem.intakeMotorSpeed(0.5, -0.5), 
+            () ->
+            commandFactory.algaeGroundPickupStop())
+    );*/
+
+    test.leftTrigger().onTrue(new InstantCommand(() -> intakeSubsystem.intakeTorqueCommand()));
+
+    test.rightBumper().onTrue(new InstantCommand(() -> intakeSubsystemPivot.L1_IntakePosition()));
+
 //CLIMB
-    test.y().onTrue(climbSubsystem.rotateToPositionPivot(-7));
+    //test.y().onTrue(climbSubsystem.rotateToPositionPivot(-7));
 
-    test.back().onTrue(climbSubsystem.rotateToPositionGrip(-2.75));
+    //test.back().onTrue(climbSubsystem.rotateToPositionGrip(-2.75));
 
-    test.povRight().whileTrue(new StartEndCommand(() -> climbSubsystem.climbSpeed(0.1), () -> climbSubsystem.climbSpeed(0)));
+    //test.povRight().whileTrue(new StartEndCommand(() -> climbSubsystem.climbSpeed(0.1), () -> climbSubsystem.climbSpeed(0)));
 
-    test.povLeft().whileTrue(new StartEndCommand(() -> climbSubsystem.climbSpeed(-0.1), () -> climbSubsystem.climbSpeed(0)));
+    //test.povLeft().whileTrue(new StartEndCommand(() -> climbSubsystem.climbSpeed(-0.1), () -> climbSubsystem.climbSpeed(0)));
 
-*/
+
 }
 
 public Command getAutonomousCommand() {

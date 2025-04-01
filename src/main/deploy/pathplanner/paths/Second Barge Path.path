@@ -1,0 +1,178 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 7.45,
+        "y": 5.4
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 6.449999999999999,
+        "y": 5.4
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 4.902971311475409,
+        "y": 4.7982069672131145
+      },
+      "prevControl": {
+        "x": 5.456268145547558,
+        "y": 5.707194623188788
+      },
+      "nextControl": {
+        "x": 4.567315573770491,
+        "y": 4.246772540983606
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 5.38247950819672,
+        "y": 5.469518442622951
+      },
+      "prevControl": {
+        "x": 4.663217213114754,
+        "y": 5.1698258196721305
+      },
+      "nextControl": {
+        "x": 6.008931731274405,
+        "y": 5.730540202238653
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 7.3,
+        "y": 5.4
+      },
+      "prevControl": {
+        "x": 6.709016393442622,
+        "y": 5.3496413934426235
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": null
+    }
+  ],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 0.4770091963214696,
+      "rotationDegrees": 180.0
+    },
+    {
+      "waypointRelativePos": 1.0979608156737308,
+      "rotationDegrees": -119.99999999999999
+    }
+  ],
+  "constraintZones": [
+    {
+      "name": "Constraints Zone",
+      "minWaypointRelativePos": 0.9088319088319087,
+      "maxWaypointRelativePos": 1.4824311490978224,
+      "constraints": {
+        "maxVelocity": 1.0,
+        "maxAcceleration": 3.0,
+        "maxAngularVelocity": 540.0,
+        "maxAngularAcceleration": 720.0,
+        "nominalVoltage": 12.0,
+        "unlimited": false
+      }
+    },
+    {
+      "name": "Constraints Zone",
+      "minWaypointRelativePos": 1.8076923076923177,
+      "maxWaypointRelativePos": 3.0,
+      "constraints": {
+        "maxVelocity": 1.5,
+        "maxAcceleration": 3.0,
+        "maxAngularVelocity": 540.0,
+        "maxAngularAcceleration": 720.0,
+        "nominalVoltage": 12.0,
+        "unlimited": false
+      }
+    }
+  ],
+  "pointTowardsZones": [],
+  "eventMarkers": [
+    {
+      "name": "upperAlgae",
+      "waypointRelativePos": 0.5099715099715239,
+      "endWaypointRelativePos": null,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "upperAlgae"
+        }
+      }
+    },
+    {
+      "name": "humanStation",
+      "waypointRelativePos": 1.9900284900284833,
+      "endWaypointRelativePos": null,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "humanStation"
+        }
+      }
+    },
+    {
+      "name": "bargeSetpoint",
+      "waypointRelativePos": 2.4,
+      "endWaypointRelativePos": null,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "bargeSetpoint"
+        }
+      }
+    },
+    {
+      "name": "intakeStop",
+      "waypointRelativePos": 2.97,
+      "endWaypointRelativePos": null,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "intakeStop"
+        }
+      }
+    },
+    {
+      "name": "bargeShoot",
+      "waypointRelativePos": 3.0,
+      "endWaypointRelativePos": null,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "bargeShoot"
+        }
+      }
+    }
+  ],
+  "globalConstraints": {
+    "maxVelocity": 3.0,
+    "maxAcceleration": 3.0,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": 0.0
+  },
+  "reversed": false,
+  "folder": "Algae Paths",
+  "idealStartingState": {
+    "velocity": 0,
+    "rotation": 0.0
+  },
+  "useDefaultConstraints": true
+}

@@ -7,31 +7,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Algae Center Path"
-          }
-        },
-        {
-          "type": "wait",
-          "data": {
-            "waitTime": 0.25
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "coralShoot"
-          }
-        },
-        {
-          "type": "wait",
-          "data": {
-            "waitTime": 0.15
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "lowerAlgae"
+            "pathName": "Fast Algae Center Path"
           }
         },
         {
@@ -41,13 +17,25 @@
           }
         },
         {
-          "type": "parallel",
+          "type": "named",
+          "data": {
+            "name": "coralShoot"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "lowerAlgae"
+          }
+        },
+        {
+          "type": "deadline",
           "data": {
             "commands": [
               {
                 "type": "path",
                 "data": {
-                  "pathName": "Real Barge Path"
+                  "pathName": "Fast Barge Path"
                 }
               },
               {
@@ -60,21 +48,21 @@
           }
         },
         {
+          "type": "named",
+          "data": {
+            "name": "bargeShoot"
+          }
+        },
+        {
           "type": "wait",
           "data": {
-            "waitTime": 0.15
+            "waitTime": 0.1
           }
         },
         {
           "type": "named",
           "data": {
-            "name": "algaeShoot"
-          }
-        },
-        {
-          "type": "wait",
-          "data": {
-            "waitTime": 0.15
+            "name": "intakeStop"
           }
         },
         {
@@ -82,9 +70,40 @@
           "data": {
             "commands": [
               {
+                "type": "path",
+                "data": {
+                  "pathName": "Second Barge Path"
+                }
+              },
+              {
                 "type": "named",
                 "data": {
-                  "name": "humanStation"
+                  "name": "constantIntake"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "bargeShoot"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 0.1
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "A4 Final Leave"
                 }
               },
               {
@@ -94,31 +113,6 @@
                 }
               }
             ]
-          }
-        },
-        {
-          "type": "parallel",
-          "data": {
-            "commands": [
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "Second Scrubber Path"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "constantIntake"
-                }
-              }
-            ]
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "humanStation"
           }
         }
       ]
