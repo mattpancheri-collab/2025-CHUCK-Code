@@ -6,56 +6,45 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
-
+import frc.robot.Constants.IntakeConstants;
 
 public class IntakeSubsystem extends SubsystemBase {
 
-    private static IntakeSubsystem instance;
+    // Singleton removed
 
     private final TalonFX intakeLeft;
     private final TalonFX intakeRight;
     private final TalonFXConfiguration intakeSpinConfig;
 
-    double desiredTorqueAmps = 40;
+    private final TorqueCurrentFOC leftTorqueControl = new TorqueCurrentFOC(IntakeConstants.kTorqueAmps);
+    private final TorqueCurrentFOC rightTorqueControl = new TorqueCurrentFOC(-IntakeConstants.kTorqueAmps);
+
 
     public IntakeSubsystem() {
 
         //Kraken Motors
-        intakeLeft = new TalonFX(9);  
-        intakeRight = new TalonFX(10);
+        intakeLeft = new TalonFX(IntakeConstants.kLeftMotorId);  
+        intakeRight = new TalonFX(IntakeConstants.kRightMotorId);
     
 
-    intakeSpinConfig = new TalonFXConfiguration();
-            intakeSpinConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;        
+        intakeSpinConfig = new TalonFXConfiguration();
+            intakeSpinConfig.MotorOutput.NeutralMode = IntakeConstants.kNeutralMode;        
             
             intakeLeft.getConfigurator().apply(intakeSpinConfig);
             intakeRight.getConfigurator().apply(intakeSpinConfig);
     }
-
-    public static synchronized IntakeSubsystem getInstance() {
-        if (instance == null) {
-            instance = new IntakeSubsystem();
-        }
-        return instance;
-    }
-
     
     public void intakeMotorSpeed(double leftSpeed, double rightSpeed) {  
         intakeLeft.set(leftSpeed);
-        intakeRight.set(-leftSpeed);
+        intakeRight.set(rightSpeed); 
     }
 
  public Command intakeTorqueCommand() {
-    return Commands.run(
+    return this.run(
         () -> {
-            TorqueCurrentFOC leftTorqueControl = new TorqueCurrentFOC(desiredTorqueAmps);
-            TorqueCurrentFOC rightTorqueControl = new TorqueCurrentFOC(-desiredTorqueAmps);
-
             intakeLeft.setControl(leftTorqueControl);
             intakeRight.setControl(rightTorqueControl);
-        },
-        this  // Refers to intakeSubsystem
+        }
     ).finallyDo(interrupted -> stopMotors());
 }
     
@@ -69,5 +58,4 @@ public class IntakeSubsystem extends SubsystemBase {
     @Override
     public void periodic() {}
    
-
 } 

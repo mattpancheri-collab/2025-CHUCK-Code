@@ -97,12 +97,16 @@ public class RobotContainer {
         NamedCommands.registerCommand("levelFour", commandFactory.levelFour().withTimeout(0.25));
         NamedCommands.registerCommand("lowerAlgae", commandFactory.lowerAlgae().withTimeout(0.25));
         NamedCommands.registerCommand("upperAlgae", commandFactory.upperAlgae());
+        //NamedCommands.registerCommand("autoAlgae", commandFactory.autoAlgae().withTimeout(0.2));
         NamedCommands.registerCommand("humanStation", commandFactory.humanStation().withTimeout(0.25));
+        NamedCommands.registerCommand("humanPivot", intakeSubsystemPivot.HumanStation_IntakePosition().withTimeout(0.2));
         NamedCommands.registerCommand("bargeStart", commandFactory.bargeSetpointStart());
         NamedCommands.registerCommand("bargeSetpoint", commandFactory.bargeSetpointTheSequel());
+        NamedCommands.registerCommand("bargeAuto", commandFactory.bargeAutoSetpoint());
         NamedCommands.registerCommand("bargeShoot", commandFactory.bargeSetpointTheSequelStop());
         NamedCommands.registerCommand("coralIntake", commandFactory.coralIntake().withTimeout(0.05));
         NamedCommands.registerCommand("constantIntake", torqueHoldCommand.withTimeout(3.5));
+        //NamedCommands.registerCommand("secondConstantIntake", torqueHoldCommand.withTimeout(5));
         NamedCommands.registerCommand("intakeStop", new InstantCommand(() -> {CommandScheduler.getInstance().cancel(torqueHoldCommand);}).withTimeout(0.25));
         NamedCommands.registerCommand("algaeShoot", new InstantCommand (() -> intakeSubsystem.intakeMotorSpeed(-1, 1)));
   
@@ -244,7 +248,8 @@ public class RobotContainer {
 
         //Barge Elevator Position
         operator.leftStick().onTrue(new SequentialCommandGroup(
-            commandFactory.humanStation().withTimeout(0.2),
+            intakeSubsystemPivot.HumanStation_IntakePosition().withTimeout(0.2),
+            elevatorSubsystem.Stow_ElevatorPosition().withTimeout(0.1),
             commandFactory.bargeSetpointTheSequel()
         ));        
        
@@ -287,11 +292,11 @@ public class RobotContainer {
 // CORAL PIVOT
 
     //Manual Coral Pivot Down
-    operator.povDown().whileTrue(new StartEndCommand(()-> intakeSubsystemPivot.intakePivotSpeed(0.1),
+    operator.povUp().whileTrue(new StartEndCommand(()-> intakeSubsystemPivot.intakePivotSpeed(0.1),
                                                 ()->intakeSubsystemPivot.intakePivotSpeed(0))); 
 
     //Manual Coral Pivot Up
-    operator.povUp().whileTrue(new StartEndCommand(()-> intakeSubsystemPivot.intakePivotSpeed(-0.1),
+    operator.povDown().whileTrue(new StartEndCommand(()-> intakeSubsystemPivot.intakePivotSpeed(-0.1),
                                                 ()->intakeSubsystemPivot.intakePivotSpeed(0)));
 
 // CLIMB

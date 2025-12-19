@@ -1,12 +1,10 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
-import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
+import frc.robot.Constants.CommandConstants;
+import frc.robot.Constants.IntakeConstants;
 import frc.robot.Subsystems.AlgaeSubsystem;
 import frc.robot.Subsystems.ClimbSubsystem;
 import frc.robot.Subsystems.IntakeSubsystem;
@@ -94,7 +92,6 @@ public class CommandFactory {
         );
    }
 
-   //does this need this & bargeSetpointTheSequel here?
    public Command bargeSetpointStart() {
 
         return Commands.parallel(
@@ -103,81 +100,106 @@ public class CommandFactory {
         );
    }
 
+   public Command bargeAutoSetpoint() {
+
+        return Commands.parallel(
+                elevatorSubsystem.Stow_ElevatorPosition(),
+                intakeSubsystemPivot.stowedAlgaePosition()
+        );
+   }
+
    public Command bargeSetpointTheSequel() {
 
         return Commands.parallel(
                 intakeSubsystemPivot.Barge_IntakePosition(),
-                elevatorSubsystem.L4_ElevatorPosition()
-                //intakeSubsystem.intakeTorqueCommand() 
+                elevatorSubsystem.Stow_ElevatorPosition()
         );
  }
 
  public Command bargeSetpointTheSequelStop() {
 
      return Commands.sequence(
-          new RunCommand (() -> intakeSubsystem.intakeMotorSpeed(0.4, -0.4)).withTimeout(0.4),
-          new RunCommand (() -> intakeSubsystem.intakeMotorSpeed(-1.0, 1)).withTimeout(1),
-          new ParallelCommandGroup ( 
+          new RunCommand (() -> intakeSubsystem.intakeMotorSpeed(IntakeConstants.kBargeHoldSpeed, -IntakeConstants.kBargeHoldSpeed), intakeSubsystem)
+            .withTimeout(CommandConstants.kBargeHoldTimeout),
+          new RunCommand (() -> intakeSubsystem.intakeMotorSpeed(-IntakeConstants.kBargeShootSpeed, IntakeConstants.kBargeShootSpeed), intakeSubsystem)
+            .withTimeout(CommandConstants.kBargeShootTimeout),
+          Commands.parallel( 
                elevatorSubsystem.HumanStation_ElevatorPosition(),   
                intakeSubsystemPivot.HumanStation_IntakePosition(),
-               new InstantCommand (() -> intakeSubsystem.intakeMotorSpeed(0, 0))).withTimeout(0.2)
+               new RunCommand(() -> intakeSubsystem.intakeMotorSpeed(0, 0), intakeSubsystem).withTimeout(CommandConstants.kStopTimeout)) // Stops motors and requires subsystem
      );
 }
+
+   public Command smartShoot() {
+        return new edu.wpi.first.wpilibj2.command.StartEndCommand(
+            () -> {
+                if (elevatorSubsystem.isAtPositionSetpoint(frc.robot.Constants.ElevatorConstants.kL1Position)) {
+                    intakeSubsystem.intakeMotorSpeed(-1, 0.35); // Spin shot 
+                } else {
+                    intakeSubsystem.intakeMotorSpeed(-IntakeConstants.kShootSpeed, IntakeConstants.kShootSpeed); // Regular Shot
+                }
+            },
+            () -> intakeSubsystem.intakeMotorSpeed(0, 0), 
+            intakeSubsystem
+        );
+   }
 
    public Command coralAutoBranch() {
 
         return Commands.sequence(
-                new RunCommand (() -> intakeSubsystem.intakeMotorSpeed(-0.6, 0.6)).withTimeout(.4),
-                new RunCommand (() -> intakeSubsystem.intakeMotorSpeed(0, 0)).withTimeout(.25)
+                new RunCommand (() -> intakeSubsystem.intakeMotorSpeed(-IntakeConstants.kShootSpeed, IntakeConstants.kShootSpeed), intakeSubsystem)
+                    .withTimeout(CommandConstants.kCoralShootTimeout),
+                new RunCommand (() -> intakeSubsystem.intakeMotorSpeed(0, 0), intakeSubsystem)
+                    .withTimeout(CommandConstants.kStopTimeout)
         );
    }
 
    public Command coralAutoTrough() {
 
         return Commands.sequence(
-                new RunCommand (() -> intakeSubsystem.intakeMotorSpeed(-0.6, 0.35)).withTimeout(.4),
-                new RunCommand (() -> intakeSubsystem.intakeMotorSpeed(0, 0)).withTimeout(.25)
+                new RunCommand (() -> intakeSubsystem.intakeMotorSpeed(-IntakeConstants.kShootSpeed, 0.35), intakeSubsystem).withTimeout(CommandConstants.kCoralShootTimeout), // 0.35 magic number preserved as it seems specific
+                new RunCommand (() -> intakeSubsystem.intakeMotorSpeed(0, 0), intakeSubsystem).withTimeout(CommandConstants.kStopTimeout)
         );
    }
 
    public Command coralIntake() {
           
         return Commands.sequence(
-                new RunCommand (() -> intakeSubsystem.intakeMotorSpeed(0.8, -0.8)).withTimeout(3),
-                new RunCommand (() -> intakeSubsystem.intakeMotorSpeed(0, 0)).withTimeout(0.25)
+                new RunCommand (() -> intakeSubsystem.intakeMotorSpeed(IntakeConstants.kIntakeSpeed, -IntakeConstants.kIntakeSpeed), intakeSubsystem)
+                    .withTimeout(CommandConstants.kCoralIntakeTimeout),
+                new RunCommand (() -> intakeSubsystem.intakeMotorSpeed(0, 0), intakeSubsystem)
+                    .withTimeout(CommandConstants.kStopTimeout)
         );
    }
 
-   //test and fix 
    public Command algaeGroundPickup() {
      return Commands.parallel(
-     intakeSubsystem.intakeTorqueCommand(),    
-     intakeSubsystemPivot.groundAlgaePosition(),
-     algaeSubsystem.AlgaePivot_GroundPosition(),
-     new RunCommand (() -> algaeSubsystem.algaeSpeed(-1))  //will this cause same issue as intake pivot subsystem
+          elevatorSubsystem.L1_ElevatorPosition(),
+          intakeSubsystem.intakeTorqueCommand(),    
+          intakeSubsystemPivot.groundAlgaePosition(),
+          algaeSubsystem.AlgaePivot_GroundPosition(),
+          new RunCommand (() -> algaeSubsystem.algaeSpeed(-1), algaeSubsystem)
      );
  }
  
- //test and fix
  public Command algaeGroundPickupStop() {
-     return Commands.parallel(
-     intakeSubsystem.intakeTorqueCommand(),    
-     algaeSubsystem.AlgaePivot_StowedPosition(),
-     new RunCommand (() -> algaeSubsystem.algaeSpeed(0))  //will this cause same issue as intake pivot subsystem
+     return Commands.parallel( 
+        algaeSubsystem.AlgaePivot_StowedPosition(),
+        new RunCommand (() -> algaeSubsystem.algaeSpeed(0), algaeSubsystem)
      );
  }
 
    public Command climbBrake() {
 
         return Commands.sequence(
-                new RunCommand (() -> climbSubsystem.ServoBrake())
+                new RunCommand (() -> climbSubsystem.ServoBrake(), climbSubsystem)
         );
    }
 
    public Command climbLoose() {
 
         return Commands.sequence(
-                new RunCommand (() -> climbSubsystem.ServoLoose())
+                new RunCommand (() -> climbSubsystem.ServoLoose(), climbSubsystem)
         );
    }
 }

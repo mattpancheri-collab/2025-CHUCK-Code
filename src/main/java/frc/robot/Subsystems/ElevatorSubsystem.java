@@ -10,65 +10,40 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.Constants.ElevatorConstants;
 
 public class ElevatorSubsystem extends SubsystemBase {
     
-    private static ElevatorSubsystem instance;
+    // Singleton removed in favor of Dependency Injection
 
     private final TalonFX elevatorMaster;
     private final TalonFX elevatorFollower;
     private final TalonFXConfiguration elevatorMasterConfig;
     private final MotionMagicDutyCycle motionMagicControl;
 
-    // Position Setpoints
-    double L1_ElevatorPosition = -0.2;
-    double L2_ElevatorPosition = -9.5;
-    double L3_ElevatorPosition = -25;
-    double L4_ElevatorPosition = -51;
-
-    double HumanStation_ElevatorPosition= -8.25;
-    double Processor_ElevatorPosition = 2;
-    double GroundAlgae_ElevatorPosition = -8.5;
-    double Stow_ElevatorPosition= -0.2;
-
-    public double getL1ElevatorPosition() {
-        return L1_ElevatorPosition;
-    }
-
-    public double getHumanStationElevatorPosition() {
-        return HumanStation_ElevatorPosition;
-    }
-
     public ElevatorSubsystem() {
 
-        elevatorMaster = new TalonFX(14);
-        elevatorFollower = new TalonFX(15);
+        elevatorMaster = new TalonFX(ElevatorConstants.kMasterMotorId);
+        elevatorFollower = new TalonFX(ElevatorConstants.kFollowerMotorId);
         elevatorFollower.setControl(new Follower(elevatorMaster.getDeviceID(), false));  //needed because factory default invert is NOT the same
 
 
         elevatorMasterConfig = new TalonFXConfiguration();
-            elevatorMasterConfig.Slot0.kP = 0.26;
-            elevatorMasterConfig.Slot0.kI = 0.0;
-            elevatorMasterConfig.Slot0.kD = 0.0;
-            elevatorMasterConfig.Slot0.kV = 0.05; 
-            elevatorMasterConfig.Slot0.kG = 0.02;
+            elevatorMasterConfig.Slot0.kP = ElevatorConstants.kP;
+            elevatorMasterConfig.Slot0.kI = ElevatorConstants.kI;
+            elevatorMasterConfig.Slot0.kD = ElevatorConstants.kD;
+            elevatorMasterConfig.Slot0.kV = ElevatorConstants.kV; 
+            elevatorMasterConfig.Slot0.kG = ElevatorConstants.kG;
 
-            elevatorMasterConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-            elevatorMasterConfig.MotorOutput.Inverted =  InvertedValue.Clockwise_Positive;
+            elevatorMasterConfig.MotorOutput.NeutralMode = ElevatorConstants.kNeutralMode;
+            elevatorMasterConfig.MotorOutput.Inverted =  ElevatorConstants.kInverted;
 
         //Set Motion Magic settings
         motionMagicControl = new MotionMagicDutyCycle(0);
-            elevatorMasterConfig.MotionMagic.MotionMagicCruiseVelocity = 10000; 
-            elevatorMasterConfig.MotionMagic.MotionMagicAcceleration = 2000; 
+            elevatorMasterConfig.MotionMagic.MotionMagicCruiseVelocity = ElevatorConstants.kCruiseVelocity; 
+            elevatorMasterConfig.MotionMagic.MotionMagicAcceleration = ElevatorConstants.kAcceleration; 
     
         elevatorMaster.getConfigurator().apply(elevatorMasterConfig);
-    }
-
-    public static synchronized ElevatorSubsystem getInstance() {
-        if (instance == null) {
-            instance = new ElevatorSubsystem();
-        }
-        return instance; 
     }
 
     public void setPosition(double position){
@@ -80,7 +55,15 @@ public class ElevatorSubsystem extends SubsystemBase {
     }
 
     public boolean isAtPositionSetpoint(double position) {
-        return Math.abs(elevatorMaster.getPosition().getValueAsDouble() - position) < 0.1; //0.1 pivot error
+        return Math.abs(elevatorMaster.getPosition().getValueAsDouble() - position) < ElevatorConstants.kPositionTolerance; 
+    }
+    
+    public double getL1ElevatorPosition() {
+        return ElevatorConstants.kL1Position;
+    }
+
+    public double getHumanStationElevatorPosition() {
+        return ElevatorConstants.kHumanStationPosition;
     }
 
     // Commands
@@ -90,43 +73,43 @@ public class ElevatorSubsystem extends SubsystemBase {
     }
 
     public Command L1_ElevatorPosition() {
-        return this.run(() -> setPosition(L1_ElevatorPosition))
-        .until(() -> isAtPositionSetpoint(L1_ElevatorPosition));
+        return this.run(() -> setPosition(ElevatorConstants.kL1Position))
+        .until(() -> isAtPositionSetpoint(ElevatorConstants.kL1Position));
     }
 
     public Command L2_ElevatorPosition() {
-        return this.run(() -> setPosition(L2_ElevatorPosition))
-        .until(() -> isAtPositionSetpoint(L2_ElevatorPosition));
+        return this.run(() -> setPosition(ElevatorConstants.kL2Position))
+        .until(() -> isAtPositionSetpoint(ElevatorConstants.kL2Position));
     }
 
     public Command L3_ElevatorPosition() {
-        return this.run(() -> setPosition(L3_ElevatorPosition))
-        .until(() -> isAtPositionSetpoint(L3_ElevatorPosition));
+        return this.run(() -> setPosition(ElevatorConstants.kL3Position))
+        .until(() -> isAtPositionSetpoint(ElevatorConstants.kL3Position));
     }
 
     public Command L4_ElevatorPosition() {
-        return this.run(() -> setPosition(L4_ElevatorPosition))
-        .until(() -> isAtPositionSetpoint(L4_ElevatorPosition));
+        return this.run(() -> setPosition(ElevatorConstants.kL4Position))
+        .until(() -> isAtPositionSetpoint(ElevatorConstants.kL4Position));
     }
     
     public Command HumanStation_ElevatorPosition() {
-        return this.run(() -> setPosition(HumanStation_ElevatorPosition))
-        .until(() -> isAtPositionSetpoint(HumanStation_ElevatorPosition));
+        return this.run(() -> setPosition(ElevatorConstants.kHumanStationPosition))
+        .until(() -> isAtPositionSetpoint(ElevatorConstants.kHumanStationPosition));
     }
 
     public Command Processor_ElevatorPosition() {
-        return this.run(() -> setPosition(Processor_ElevatorPosition))
-        .until(() -> isAtPositionSetpoint(Processor_ElevatorPosition));
+        return this.run(() -> setPosition(ElevatorConstants.kProcessorPosition))
+        .until(() -> isAtPositionSetpoint(ElevatorConstants.kProcessorPosition));
     }
 
     public Command GroundAlgae_ElevatorPosition() {
-        return this.run(() -> setPosition(GroundAlgae_ElevatorPosition))
-        .until(() -> isAtPositionSetpoint(GroundAlgae_ElevatorPosition));
+        return this.run(() -> setPosition(ElevatorConstants.kGroundAlgaePosition))
+        .until(() -> isAtPositionSetpoint(ElevatorConstants.kGroundAlgaePosition));
     }
 
     public Command Stow_ElevatorPosition() {
-        return this.run(() -> setPosition(Stow_ElevatorPosition))
-        .until(() -> isAtPositionSetpoint(Stow_ElevatorPosition));
+        return this.run(() -> setPosition(ElevatorConstants.kStowPosition))
+        .until(() -> isAtPositionSetpoint(ElevatorConstants.kStowPosition));
     }
 
     public void resetElevatorEncoder() {

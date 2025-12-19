@@ -3,13 +3,13 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 5.8,
+        "x": 6.0,
         "y": 3.865
       },
       "prevControl": null,
       "nextControl": {
-        "x": 5.3105532786885234,
-        "y": 4.150870901639344
+        "x": 5.03483606557377,
+        "y": 4.102920081967213
       },
       "isLocked": false,
       "linkedName": null
@@ -32,11 +32,11 @@
     },
     {
       "anchor": {
-        "x": 7.45,
+        "x": 7.65,
         "y": 5.4
       },
       "prevControl": {
-        "x": 6.535102459016394,
+        "x": 6.735102459016394,
         "y": 5.529456967213114
       },
       "nextControl": null,
@@ -60,7 +60,7 @@
       "minWaypointRelativePos": 0.7986704653371379,
       "maxWaypointRelativePos": 1.8471035137701823,
       "constraints": {
-        "maxVelocity": 1.0,
+        "maxVelocity": 1.25,
         "maxAcceleration": 3.0,
         "maxAngularVelocity": 540.0,
         "maxAngularAcceleration": 720.0,
@@ -89,7 +89,7 @@
       "command": {
         "type": "named",
         "data": {
-          "name": "bargeSetpoint"
+          "name": "bargeAuto"
         }
       }
     },
@@ -106,7 +106,7 @@
     }
   ],
   "globalConstraints": {
-    "maxVelocity": 1.5,
+    "maxVelocity": 1.75,
     "maxAcceleration": 3.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,

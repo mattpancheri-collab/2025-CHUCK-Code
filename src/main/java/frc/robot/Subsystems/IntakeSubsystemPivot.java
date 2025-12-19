@@ -14,74 +14,55 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants.PivotConstants;
 
 public class IntakeSubsystemPivot extends SubsystemBase {
 
-    private static IntakeSubsystemPivot instance;
+    // Singleton removed
 
     private final TalonFX intakePivot;
     private final TalonFXConfiguration intakePivotConfig;
     private final TalonFXConfiguration algaeIntakePivotConfig;
     private final MotionMagicDutyCycle motionMagicControl;
-  
-
-    // Position Setpoints........................................
-      //coral
-    double L1_IntakePosition = 2.357188;
-    double midBranch_IntakePosition = 3.05;
-    double L4_IntakePosition = 3.342285;
-    double HumanStation_IntakePosition = 1.55;
-      //algae
-    double bargePosition = 0
-    
-    ;
-    double groundAlgaePosition = 4.25;
-    double stowedAlgaePosition = 0.0;
 
   public IntakeSubsystemPivot() {
 
-        intakePivot = new TalonFX(11);
+        intakePivot = new TalonFX(PivotConstants.kMotorId);
       
         // Coral Intake Pivot Configuration
         intakePivotConfig = new TalonFXConfiguration();
-            intakePivotConfig.Slot0.kP = 0.35;
-            intakePivotConfig.Slot0.kI = 0;
-            intakePivotConfig.Slot0.kD = 0.015;
-            intakePivotConfig.Slot0.kS = 0.25; // IF 0.25 = Add 0.25 V output to overcome static friction
-            intakePivotConfig.Slot0.kV = 0.00; // IF 0.12 = A velocity target of 1 rps results in 0.12 V output
-            intakePivotConfig.Slot0.kA = 0.01; // IF 0.01 = An acceleration of 1 rps/s requires 0.01 V output
+            intakePivotConfig.Slot0.kP = PivotConstants.kCoralP;
+            intakePivotConfig.Slot0.kI = PivotConstants.kCoralI;
+            intakePivotConfig.Slot0.kD = PivotConstants.kCoralD;
+            intakePivotConfig.Slot0.kS = PivotConstants.kCoralS; 
+            intakePivotConfig.Slot0.kV = PivotConstants.kCoralV;
+            intakePivotConfig.Slot0.kA = PivotConstants.kCoralA;
+            intakePivotConfig.Slot0.kG = PivotConstants.kCoralG;
     
-            intakePivotConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-            intakePivotConfig.MotorOutput.Inverted =  InvertedValue.Clockwise_Positive;
+            intakePivotConfig.MotorOutput.NeutralMode = PivotConstants.kNeutralMode;
+            intakePivotConfig.MotorOutput.Inverted =  PivotConstants.kInverted;
 
         // Algae Intake Pivot Configuration
         algaeIntakePivotConfig = new TalonFXConfiguration();
-            algaeIntakePivotConfig.Slot0.kP = 0.5; // change PID tuning for Algae
-            algaeIntakePivotConfig.Slot0.kI = 0.0;
-            algaeIntakePivotConfig.Slot0.kD = 0.02;
-            algaeIntakePivotConfig.Slot0.kS = 0.25;
-            algaeIntakePivotConfig.Slot0.kV = 0.05;
-            algaeIntakePivotConfig.Slot0.kA = 0.01;
+            algaeIntakePivotConfig.Slot0.kP = PivotConstants.kAlgaeP;
+            algaeIntakePivotConfig.Slot0.kI = PivotConstants.kAlgaeI;
+            algaeIntakePivotConfig.Slot0.kD = PivotConstants.kAlgaeD;
+            algaeIntakePivotConfig.Slot0.kS = PivotConstants.kAlgaeS;
+            algaeIntakePivotConfig.Slot0.kV = PivotConstants.kAlgaeV;
+            algaeIntakePivotConfig.Slot0.kA = PivotConstants.kAlgaeA;
                 
-            algaeIntakePivotConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-            algaeIntakePivotConfig.MotorOutput.Inverted =  InvertedValue.Clockwise_Positive;
+            algaeIntakePivotConfig.MotorOutput.NeutralMode = PivotConstants.kNeutralMode;
+            algaeIntakePivotConfig.MotorOutput.Inverted =  PivotConstants.kInverted;
 
 
         // Set Motion Magic settings
         motionMagicControl = new MotionMagicDutyCycle(0);
-            intakePivotConfig.MotionMagic.MotionMagicCruiseVelocity = 200; // rps
-            intakePivotConfig.MotionMagic.MotionMagicAcceleration = 100; // rps
-            intakePivotConfig.MotionMagic.MotionMagicJerk = 1600; // Target jerk rps/s/s (0.1 seconds)
+            intakePivotConfig.MotionMagic.MotionMagicCruiseVelocity = PivotConstants.kCruiseVelocity; 
+            intakePivotConfig.MotionMagic.MotionMagicAcceleration = PivotConstants.kAcceleration; 
+            intakePivotConfig.MotionMagic.MotionMagicJerk = PivotConstants.kJerk; 
 
         //do we need seperate motion magic for algeaIntakePivot?
 
-    }
-
-    public static synchronized IntakeSubsystemPivot getInstance() {
-        if (instance == null) {
-            instance = new IntakeSubsystemPivot();
-        }
-        return instance;
     }
 
   //.........POSITIONS..................
@@ -104,7 +85,7 @@ public class IntakeSubsystemPivot extends SubsystemBase {
     }
 
     public boolean isAtPositionSetpoint(double position) {
-        return Math.abs(intakePivot.getPosition().getValueAsDouble() - position) < 0.2; // 0.2 pivot error
+        return Math.abs(intakePivot.getPosition().getValueAsDouble() - position) < PivotConstants.kPositionTolerance; 
     }
 
     public Command rotateToPosition(double position) {
@@ -123,56 +104,55 @@ public class IntakeSubsystemPivot extends SubsystemBase {
 
     public Command L1_IntakePosition() {
         return this.runOnce(() -> setConfigForIntakePivot()) 
-        .andThen(this.run(() -> setPosition(L1_IntakePosition))
+        .andThen(this.run(() -> setPosition(PivotConstants.kL1Position))
                 .until(() -> {
-                  System.out.println(isAtPositionSetpoint(L1_IntakePosition));
-                  return isAtPositionSetpoint(L1_IntakePosition);
+                  System.out.println(isAtPositionSetpoint(PivotConstants.kL1Position));
+                  return isAtPositionSetpoint(PivotConstants.kL1Position);
                 }));
     }
 
     public Command midBranch_IntakePosition() {
         return this.runOnce(() -> setConfigForIntakePivot()) 
-        .andThen(this.run(() -> setPosition(midBranch_IntakePosition))
-                .until(() -> isAtPositionSetpoint(midBranch_IntakePosition)));
+        .andThen(this.run(() -> setPosition(PivotConstants.kMidBranchPosition))
+                .until(() -> isAtPositionSetpoint(PivotConstants.kMidBranchPosition)));
     }
 
     public Command L4_IntakePosition() {
         return this.runOnce(() -> setConfigForIntakePivot()) 
-        .andThen(this.run(() -> setPosition(L4_IntakePosition))
-                .until(() -> isAtPositionSetpoint(L4_IntakePosition)));
+        .andThen(this.run(() -> setPosition(PivotConstants.kL4Position))
+                .until(() -> isAtPositionSetpoint(PivotConstants.kL4Position)));
     }
 
     public Command HumanStation_IntakePosition() { 
         return this.runOnce(() -> setConfigForIntakePivot()) 
-        .andThen(this.run(() -> setPosition(HumanStation_IntakePosition))
+        .andThen(this.run(() -> setPosition(PivotConstants.kHumanStationPosition))
                 .until(() -> {
-                  System.out.println(isAtPositionSetpoint(HumanStation_IntakePosition));
-                  return isAtPositionSetpoint(HumanStation_IntakePosition);
+                  System.out.println(isAtPositionSetpoint(PivotConstants.kHumanStationPosition));
+                  return isAtPositionSetpoint(PivotConstants.kHumanStationPosition);
                 }));
     }
 
 //......Algae Positions...................................................................
-//wed morning fix..did work?
     public Command Barge_IntakePosition() {
         return this.runOnce(() -> setConfigForAlgaeIntakePivot()) 
         .andThen(
-            new RunCommand(() -> setPosition(bargePosition), this)
-                .until(() -> isAtPositionSetpoint(bargePosition))
+            new RunCommand(() -> setPosition(PivotConstants.kBargePosition), this)
+                .until(() -> isAtPositionSetpoint(PivotConstants.kBargePosition))
         );
     }
 
     public Command groundAlgaePosition() {
         return this.runOnce(() -> setConfigForIntakePivot())  //does not have algae so use intakePivotConfig
-        .andThen(this.run(() -> setPosition(groundAlgaePosition))
-                 .until(() -> isAtPositionSetpoint(groundAlgaePosition))
+        .andThen(this.run(() -> setPosition(PivotConstants.kGroundAlgaePosition))
+                 .until(() -> isAtPositionSetpoint(PivotConstants.kGroundAlgaePosition))
             );
             //.andThen(new InstantCommand(() -> stopPivotMotor(), this)); // Ensure motor stops
     }
 
     public Command stowedAlgaePosition() {
       return this.runOnce(() -> setConfigForIntakePivot())  //does not have algae so use intakePivotConfig
-      .andThen(this.run(() -> setPosition(stowedAlgaePosition))
-               .until(() -> isAtPositionSetpoint(stowedAlgaePosition))
+      .andThen(this.run(() -> setPosition(PivotConstants.kStowedAlgaePosition))
+               .until(() -> isAtPositionSetpoint(PivotConstants.kStowedAlgaePosition))
           );
           //.andThen(new InstantCommand(() -> stopPivotMotor(), this)); // Ensure motor stops
   }

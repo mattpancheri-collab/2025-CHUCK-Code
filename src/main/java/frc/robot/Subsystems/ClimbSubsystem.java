@@ -11,10 +11,11 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj.Servo;
+import frc.robot.Constants.ClimbConstants;
 
 public class ClimbSubsystem extends SubsystemBase {
     
-    private static ClimbSubsystem instance;
+    // Singleton removed
 
     private final TalonFX climbPivotMaster;
     private final TalonFX climbPivotFollower;
@@ -24,75 +25,56 @@ public class ClimbSubsystem extends SubsystemBase {
     private final MotionMagicDutyCycle motionMagicControlPivot;
     private final MotionMagicDutyCycle motionMagicControlGrip;
 
-    Servo brakeServo = new Servo(0);
-
-
-    // Setpoints
-    double ClimbPivot_StowedPosition = 1;
-    double ClimbPivot_PickupPosition = 2.979004;
-    double GripMotor_InPosition = 1;
-    double GripMotor_OutPosition = 2;
-
-    // Servo Angle
-    double brakeAngle = 0.6;
-    double looseAngle = 0.3;
-
+    Servo brakeServo = new Servo(ClimbConstants.kBrakeServoChannel);
 
 
     public ClimbSubsystem() {
-        climbPivotMaster = new TalonFX(16);
-        climbPivotFollower = new TalonFX(17);
+        climbPivotMaster = new TalonFX(ClimbConstants.kPivotMasterId);
+        climbPivotFollower = new TalonFX(ClimbConstants.kPivotFollowerId);
         climbPivotFollower.setControl(new Follower(climbPivotMaster.getDeviceID(),false)); 
 
-        climbGrip = new TalonFX(18);
+        climbGrip = new TalonFX(ClimbConstants.kGripId);
 
         //PIVOT Config...................................................
         climbPivotMasterConfig = new TalonFXConfiguration();
-            climbPivotMasterConfig.Slot0.kP = 0.1;
-            climbPivotMasterConfig.Slot0.kI = 0;
-            climbPivotMasterConfig.Slot0.kD = 0.000;
-            climbPivotMasterConfig.Slot0.kS = 0.25; // IF 0.25 = Add 0.25 V output to overcome static friction
-            climbPivotMasterConfig.Slot0.kV = 0.01; // IF 0.12 = A velocity target of 1 rps results in 0.12 V output
-            climbPivotMasterConfig.Slot0.kA = 0.01; // IF 0.01 = An acceleration of 1 rps/s requires 0.01 V output
+            climbPivotMasterConfig.Slot0.kP = ClimbConstants.kPivotP;
+            climbPivotMasterConfig.Slot0.kI = ClimbConstants.kPivotI;
+            climbPivotMasterConfig.Slot0.kD = ClimbConstants.kPivotD;
+            climbPivotMasterConfig.Slot0.kS = ClimbConstants.kPivotS; 
+            climbPivotMasterConfig.Slot0.kV = ClimbConstants.kPivotV; 
+            climbPivotMasterConfig.Slot0.kA = ClimbConstants.kPivotA;
  
-            climbPivotMasterConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-            climbPivotMasterConfig.MotorOutput.Inverted =  InvertedValue.Clockwise_Positive;
+            climbPivotMasterConfig.MotorOutput.NeutralMode = ClimbConstants.kNeutralMode;
+            climbPivotMasterConfig.MotorOutput.Inverted =  ClimbConstants.kInverted;
 
         //Set Motion Magic PIVOT settings
         motionMagicControlPivot = new MotionMagicDutyCycle(0);
-            climbPivotMasterConfig.MotionMagic.MotionMagicCruiseVelocity = 100;
-            climbPivotMasterConfig.MotionMagic.MotionMagicAcceleration = 100;
-            climbPivotMasterConfig.MotionMagic.MotionMagicJerk = 800;
+            climbPivotMasterConfig.MotionMagic.MotionMagicCruiseVelocity = ClimbConstants.kPivotCruiseVelocity;
+            climbPivotMasterConfig.MotionMagic.MotionMagicAcceleration = ClimbConstants.kPivotAcceleration;
+            climbPivotMasterConfig.MotionMagic.MotionMagicJerk = ClimbConstants.kPivotJerk;
         
         climbPivotMaster.getConfigurator().apply(climbPivotMasterConfig); 
         
         //GRIP Config.....................................................
         climbGripConfig = new TalonFXConfiguration();
-            climbGripConfig.Slot0.kP = 1.0;
-            climbGripConfig.Slot0.kI = 0;
-            climbGripConfig.Slot0.kD = 0.000;
-            climbGripConfig.Slot0.kS = 0.25; // IF 0.25 = Add 0.25 V output to overcome static friction
-            climbGripConfig.Slot0.kV = 0.00; // IF 0.12 = A velocity target of 1 rps results in 0.12 V output
-            climbGripConfig.Slot0.kA = 0.01; // IF 0.01 = An acceleration of 1 rps/s requires 0.01 V output
+            climbGripConfig.Slot0.kP = ClimbConstants.kGripP;
+            climbGripConfig.Slot0.kI = ClimbConstants.kGripI;
+            climbGripConfig.Slot0.kD = ClimbConstants.kGripD;
+            climbGripConfig.Slot0.kS = ClimbConstants.kGripS; 
+            climbGripConfig.Slot0.kV = ClimbConstants.kGripV; 
+            climbGripConfig.Slot0.kA = ClimbConstants.kGripA;
 
-            climbGripConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-            climbGripConfig.MotorOutput.Inverted =  InvertedValue.Clockwise_Positive;
+            climbGripConfig.MotorOutput.NeutralMode = ClimbConstants.kNeutralMode;
+            climbGripConfig.MotorOutput.Inverted =  ClimbConstants.kInverted;
 
 
         //Set Motion Magic GRIP settings
         motionMagicControlGrip = new MotionMagicDutyCycle(0);
-            climbGripConfig.MotionMagic.MotionMagicCruiseVelocity = 200;
-            climbGripConfig.MotionMagic.MotionMagicAcceleration = 100;
-            climbGripConfig.MotionMagic.MotionMagicJerk = 1600;
+            climbGripConfig.MotionMagic.MotionMagicCruiseVelocity = ClimbConstants.kGripCruiseVelocity;
+            climbGripConfig.MotionMagic.MotionMagicAcceleration = ClimbConstants.kGripAcceleration;
+            climbGripConfig.MotionMagic.MotionMagicJerk = ClimbConstants.kGripJerk;
         
         climbGrip.getConfigurator().apply(climbGripConfig); 
-    }
-
-     public static synchronized ClimbSubsystem getInstance() {
-        if (instance == null) {
-            instance = new ClimbSubsystem();
-        }
-        return instance;
     }
 
     public void setPositionPivot(double position) {
@@ -104,7 +86,7 @@ public class ClimbSubsystem extends SubsystemBase {
     }
 
     public boolean isAtPositionSetpointPivot(double position) {
-        return Math.abs(climbPivotMaster.getPosition().getValueAsDouble() - position) < 0.2;
+        return Math.abs(climbPivotMaster.getPosition().getValueAsDouble() - position) < ClimbConstants.kPositionTolerance;
     }
 
     public void setPositionGrip(double position) {
@@ -116,7 +98,7 @@ public class ClimbSubsystem extends SubsystemBase {
     }
 
     public boolean isAtPositionSetpointGrip(double position) {
-        return Math.abs(climbGrip.getPosition().getValueAsDouble() - position) < 0.2;
+        return Math.abs(climbGrip.getPosition().getValueAsDouble() - position) < ClimbConstants.kPositionTolerance;
     }
     
     
@@ -133,23 +115,23 @@ public class ClimbSubsystem extends SubsystemBase {
     }
 
     public Command ClimbPivot_StowedPosition() {
-        return this.run(() -> setPositionPivot(ClimbPivot_StowedPosition))
-        .until(() -> isAtPositionSetpointPivot(ClimbPivot_StowedPosition));
+        return this.run(() -> setPositionPivot(ClimbConstants.kPivotStowedPosition))
+        .until(() -> isAtPositionSetpointPivot(ClimbConstants.kPivotStowedPosition));
     }
 
     public Command ClimbPivot_PickupPosition() {
-        return this.run(() -> setPositionPivot(ClimbPivot_PickupPosition))
-        .until(() -> isAtPositionSetpointPivot(ClimbPivot_PickupPosition));
+        return this.run(() -> setPositionPivot(ClimbConstants.kPivotPickupPosition))
+        .until(() -> isAtPositionSetpointPivot(ClimbConstants.kPivotPickupPosition));
     }
 
     public Command GripMotor_InPosition() {
-        return this.run(() -> setPositionGrip(GripMotor_InPosition))
-        .until(() -> isAtPositionSetpointGrip(GripMotor_InPosition));
+        return this.run(() -> setPositionGrip(ClimbConstants.kGripInPosition))
+        .until(() -> isAtPositionSetpointGrip(ClimbConstants.kGripInPosition));
     }
 
     public Command GripMotor_OutPosition() {
-        return this.run(() -> setPositionGrip(GripMotor_OutPosition))
-        .until(() -> isAtPositionSetpointGrip(GripMotor_OutPosition));
+        return this.run(() -> setPositionGrip(ClimbConstants.kGripOutPosition))
+        .until(() -> isAtPositionSetpointGrip(ClimbConstants.kGripOutPosition));
     } 
 
     public void climbSpeed(double speed)   {
@@ -158,11 +140,11 @@ public class ClimbSubsystem extends SubsystemBase {
     }
 
     public void ServoBrake() {
-        brakeServo.setPosition(brakeAngle);
+        brakeServo.setPosition(ClimbConstants.kServoBrakeAngle);
     }
 
     public void ServoLoose() {
-        brakeServo.setPosition(looseAngle);
+        brakeServo.setPosition(ClimbConstants.kServoLooseAngle);
     }
 
     public void resetEncoder() {
