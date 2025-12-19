@@ -14,6 +14,13 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.PivotConstants;
 
+/**
+ * Controls the pivoting mechanism of the Intake.
+ * <p>
+ * This subsystem handles the rotation of the intake to various setpoints (L1,
+ * L2, Barge, etc.)
+ * using Motion Magic closed-loop control.
+ */
 public class IntakeSubsystemPivot extends SubsystemBase {
 
   // Singleton removed
@@ -102,10 +109,7 @@ public class IntakeSubsystemPivot extends SubsystemBase {
   public Command L1_IntakePosition() {
     return this.runOnce(() -> setConfigForIntakePivot())
         .andThen(this.run(() -> setPosition(PivotConstants.kL1Position))
-            .until(() -> {
-              System.out.println(isAtPositionSetpoint(PivotConstants.kL1Position));
-              return isAtPositionSetpoint(PivotConstants.kL1Position);
-            }));
+            .until(() -> isAtPositionSetpoint(PivotConstants.kL1Position)));
   }
 
   public Command midBranch_IntakePosition() {
@@ -123,10 +127,7 @@ public class IntakeSubsystemPivot extends SubsystemBase {
   public Command HumanStation_IntakePosition() {
     return this.runOnce(() -> setConfigForIntakePivot())
         .andThen(this.run(() -> setPosition(PivotConstants.kHumanStationPosition))
-            .until(() -> {
-              System.out.println(isAtPositionSetpoint(PivotConstants.kHumanStationPosition));
-              return isAtPositionSetpoint(PivotConstants.kHumanStationPosition);
-            }));
+            .until(() -> isAtPositionSetpoint(PivotConstants.kHumanStationPosition)));
   }
 
   // ......Algae

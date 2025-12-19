@@ -159,8 +159,34 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         configureAutoBuilder();
     }
 
+    /**
+     * Configures the PathPlanner AutoBuilder with the robot's specific settings.
+     * <p>
+     * This method:
+     * 1. Loads the RobotConfig from the GUI settings
+     * (deploy/pathplanner/settings.json).
+     * 2. Sets up the Pose Supplier/Consumer for odometry.
+     * 3. Sets up the Speed Supplier/Consumer for driving.
+     * 4. Configures PIDs for holonomic control.
+     * <p>
+     * <b>Debugging Tips:</b>
+     * <ul>
+     * <li>If the robot drifts, check your DriveConstants PIDs or physical wheel
+     * traction.</li>
+     * <li>If the robot simply spins, check if `drivetrainConstants` in Constructor
+     * matches physical ID layout.</li>
+     * <li>If the robot is too aggressive/oscillates, reduce
+     * {@link frc.robot.Constants.AutoConstants#kTranslationP} or
+     * {@link frc.robot.Constants.AutoConstants#kRotationP}.</li>
+     * <li>If the robot is sluggish/misses waypoints, increase P or add a small D
+     * term.</li>
+     * </ul>
+     */
     private void configureAutoBuilder() {
         try {
+            // Load robot configuration from the GUI settings.
+            // MAKE SURE to set the correct Robot Width, Length, and Max Speed/Acceleration
+            // in the PathPlanner GUI settings page!
             var config = RobotConfig.fromGUISettings();
             AutoBuilder.configure(
                     () -> getState().Pose, // Supplier of current robot pose
@@ -172,10 +198,16 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
                                     .withWheelForceFeedforwardsX(feedforwards.robotRelativeForcesXNewtons())
                                     .withWheelForceFeedforwardsY(feedforwards.robotRelativeForcesYNewtons())),
                     new PPHolonomicDriveController(
-                            // PID constants for translation
-                            new PIDConstants(10, 0, 0),
-                            // PID constants for rotation
-                            new PIDConstants(7, 0, 0)),
+                            // PID constants for translation - defined in Constants.java
+                            new PIDConstants(
+                                    frc.robot.Constants.AutoConstants.kTranslationP,
+                                    frc.robot.Constants.AutoConstants.kTranslationI,
+                                    frc.robot.Constants.AutoConstants.kTranslationD),
+                            // PID constants for rotation - defined in Constants.java
+                            new PIDConstants(
+                                    frc.robot.Constants.AutoConstants.kRotationP,
+                                    frc.robot.Constants.AutoConstants.kRotationI,
+                                    frc.robot.Constants.AutoConstants.kRotationD)),
                     config,
                     // Assume the path needs to be flipped for Red vs Blue, this is normally the
                     // case

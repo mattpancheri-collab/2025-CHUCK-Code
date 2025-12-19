@@ -10,6 +10,13 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants.ElevatorConstants;
 
+/**
+ * Controls the vertical Elevator mechanism.
+ * <p>
+ * Uses two TalonFX motors (Master and Follower) with Motion Magic control to
+ * reach specific heights
+ * for scoring Coral and Algae.
+ */
 public class ElevatorSubsystem extends SubsystemBase {
 
     // Singleton removed in favor of Dependency Injection
@@ -23,9 +30,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 
         elevatorMaster = new TalonFX(ElevatorConstants.kMasterMotorId);
         elevatorFollower = new TalonFX(ElevatorConstants.kFollowerMotorId);
-        elevatorFollower.setControl(new Follower(elevatorMaster.getDeviceID(), false)); // needed because factory
-                                                                                        // default invert is NOT the
-                                                                                        // same
+        elevatorFollower.setControl(new Follower(elevatorMaster.getDeviceID(), false));
 
         elevatorMasterConfig = new TalonFXConfiguration();
         elevatorMasterConfig.Slot0.kP = ElevatorConstants.kP;

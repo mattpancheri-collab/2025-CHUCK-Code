@@ -4,8 +4,10 @@ import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
 /**
- * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
- * constants. This class should not be used for any other purpose. All constants should be declared
+ * The Constants class provides a convenient place for teams to hold robot-wide
+ * numerical or boolean
+ * constants. This class should not be used for any other purpose. All constants
+ * should be declared
  * globally (i.e. public static). Do not put anything functional in this class.
  */
 public final class Constants {
@@ -18,8 +20,27 @@ public final class Constants {
 
     public static final class DriveConstants {
         public static final double kMaxAngularRate = 0.75; // Rotations per second
-        public static final double kDeadband = 0.1;        // Input deadband (10%)
+        public static final double kDeadband = 0.1; // Input deadband (10%)
         public static final double kSlowModeMultiplier = 0.2; // Speed multiplier when Right Bumper is held
+    }
+
+    public static final class AutoConstants {
+        // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        // !!! TUNING SECTION: Auto PIDs !!!
+        // If the robot drifts or shakes in Auto, change these spaces.
+        // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+        // Translation PID (X and Y movement)
+        // INCREASE if robot stops too early. DECREASE if robot oscillates/shakes.
+        public static final double kTranslationP = 10.0;
+        public static final double kTranslationI = 0.0;
+        public static final double kTranslationD = 0.0;
+
+        // Rotation PID (Heading)
+        public static final double kRotationP = 7.0;
+        public static final double kRotationI = 0.0;
+        public static final double kRotationD = 0.0;
+
     }
 
     public static final class ElevatorConstants {
@@ -28,14 +49,18 @@ public final class Constants {
         public static final int kFollowerMotorId = 15;
 
         // Configuration
+        // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        // !!! TUNING SECTION: Elevator !!!
+        // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         // TUNE: Elevator PID Constants
+        // kP = Strength of correction. kD = Dampening (prevents overshoot).
         public static final double kP = 0.26;
         public static final double kI = 0.0;
         public static final double kD = 0.0;
         public static final double kV = 0.05;
         public static final double kG = 0.02;
-        
-        public static final double kCruiseVelocity = 10000; 
+
+        public static final double kCruiseVelocity = 10000;
         public static final double kAcceleration = 2000;
 
         public static final NeutralModeValue kNeutralMode = NeutralModeValue.Brake;
@@ -50,7 +75,7 @@ public final class Constants {
         public static final double kProcessorPosition = 2;
         public static final double kGroundAlgaePosition = -10.5;
         public static final double kStowPosition = -51;
-        
+
         public static final double kPositionTolerance = 0.1;
     }
 
@@ -62,13 +87,17 @@ public final class Constants {
         // Configuration
         public static final NeutralModeValue kNeutralMode = NeutralModeValue.Brake;
         public static final double kTorqueAmps = 50.0;
-        
+
+        // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        // !!! TUNING SECTION: Intake Speeds !!!
+        // Adjust these to change how fast we shoot or intake.
+        // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         // TUNE: Intake Speeds
         public static final double kShootSpeed = 0.6;
         public static final double kIntakeSpeed = 0.8;
         public static final double kBargeShootSpeed = 1.0;
         public static final double kBargeHoldSpeed = 0.4;
-        
+
         // Special Shot Speeds
         public static final double kSpinShotLeftSpeed = -1.0; // Clamped from -6 in original code
         public static final double kSpinShotRightSpeed = 0.35;
@@ -106,7 +135,7 @@ public final class Constants {
         public static final double kStowedPosition = -0.35;
         public static final double kGroundPosition = 0.32;
         public static final double kScrubberPosition = -2.2;
-        
+
         public static final double kPositionTolerance = 0.2;
     }
 
@@ -149,7 +178,7 @@ public final class Constants {
         public static final double kBargePosition = -1.25;
         public static final double kGroundAlgaePosition = -4.7;
         public static final double kStowedAlgaePosition = -1.72;
-        
+
         public static final double kPositionTolerance = 0.2;
     }
 
@@ -167,7 +196,10 @@ public final class Constants {
         public static final double kPivotS = 0.25;
         public static final double kPivotV = 0.01;
         public static final double kPivotA = 0.01;
-        
+
+        // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        // !!! TUNING SECTION: Climb Mechanism !!!
+        // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         // TUNE: Climb Motion Magic
         public static final double kPivotCruiseVelocity = 100;
         public static final double kPivotAcceleration = 100;
@@ -191,13 +223,13 @@ public final class Constants {
         // Setpoints
         public static final double kPivotStowedPosition = 1;
         public static final double kPivotPickupPosition = 2.979004;
-        
+
         public static final double kGripInPosition = 1;
         public static final double kGripOutPosition = 2;
 
         public static final double kServoBrakeAngle = 0.6;
         public static final double kServoLooseAngle = 0.3;
-        
+
         public static final double kPositionTolerance = 0.2;
         public static final double kStickDeadband = 0.2;
     }
