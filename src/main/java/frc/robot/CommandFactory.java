@@ -5,6 +5,8 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import frc.robot.Constants.CommandConstants;
 import frc.robot.Constants.IntakeConstants;
+import frc.robot.Constants.ElevatorConstants;
+import frc.robot.Constants.ClimbConstants;
 import frc.robot.Subsystems.AlgaeSubsystem;
 import frc.robot.Subsystems.ClimbSubsystem;
 import frc.robot.Subsystems.IntakeSubsystem;
@@ -133,14 +135,35 @@ public class CommandFactory {
    public Command smartShoot() {
         return new edu.wpi.first.wpilibj2.command.StartEndCommand(
             () -> {
-                if (elevatorSubsystem.isAtPositionSetpoint(frc.robot.Constants.ElevatorConstants.kL1Position)) {
-                    intakeSubsystem.intakeMotorSpeed(-1, 0.35); // Spin shot 
+                if (elevatorSubsystem.isAtPositionSetpoint(ElevatorConstants.kL1Position)) {
+                    intakeSubsystem.intakeMotorSpeed(IntakeConstants.kSpinShotLeftSpeed, IntakeConstants.kSpinShotRightSpeed); // Spin shot 
                 } else {
                     intakeSubsystem.intakeMotorSpeed(-IntakeConstants.kShootSpeed, IntakeConstants.kShootSpeed); // Regular Shot
                 }
             },
             () -> intakeSubsystem.intakeMotorSpeed(0, 0), 
             intakeSubsystem
+        );
+   }
+
+   public Command manualCoralIntake() {
+        return new edu.wpi.first.wpilibj2.command.StartEndCommand(
+            () -> intakeSubsystem.intakeMotorSpeed(IntakeConstants.kIntakeSpeed, -IntakeConstants.kIntakeSpeed),
+            () -> intakeSubsystem.intakeMotorSpeed(0, 0),
+            intakeSubsystem
+        );
+   }
+
+   public Command climbJoystickControl(java.util.function.DoubleSupplier speedInput) {
+        return new RunCommand(
+            () -> {
+                double speed = speedInput.getAsDouble(); 
+                if (Math.abs(speed) < ClimbConstants.kStickDeadband) { 
+                    speed = 0;
+                }  
+                climbSubsystem.climbSpeed(speed);
+            },
+            climbSubsystem
         );
    }
 
@@ -157,7 +180,7 @@ public class CommandFactory {
    public Command coralAutoTrough() {
 
         return Commands.sequence(
-                new RunCommand (() -> intakeSubsystem.intakeMotorSpeed(-IntakeConstants.kShootSpeed, 0.35), intakeSubsystem).withTimeout(CommandConstants.kCoralShootTimeout), // 0.35 magic number preserved as it seems specific
+                new RunCommand (() -> intakeSubsystem.intakeMotorSpeed(-IntakeConstants.kShootSpeed, IntakeConstants.kTroughRightSpeed), intakeSubsystem).withTimeout(CommandConstants.kCoralShootTimeout),
                 new RunCommand (() -> intakeSubsystem.intakeMotorSpeed(0, 0), intakeSubsystem).withTimeout(CommandConstants.kStopTimeout)
         );
    }

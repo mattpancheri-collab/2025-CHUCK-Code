@@ -16,12 +16,19 @@ public final class Constants {
         public static final int kTestControllerPort = 2;
     }
 
+    public static final class DriveConstants {
+        public static final double kMaxAngularRate = 0.75; // Rotations per second
+        public static final double kDeadband = 0.1;        // Input deadband (10%)
+        public static final double kSlowModeMultiplier = 0.2; // Speed multiplier when Right Bumper is held
+    }
+
     public static final class ElevatorConstants {
         // Motor IDs
         public static final int kMasterMotorId = 14;
         public static final int kFollowerMotorId = 15;
 
         // Configuration
+        // TUNE: Elevator PID Constants
         public static final double kP = 0.26;
         public static final double kI = 0.0;
         public static final double kD = 0.0;
@@ -56,11 +63,16 @@ public final class Constants {
         public static final NeutralModeValue kNeutralMode = NeutralModeValue.Brake;
         public static final double kTorqueAmps = 50.0;
         
-        // Speeds
+        // TUNE: Intake Speeds
         public static final double kShootSpeed = 0.6;
         public static final double kIntakeSpeed = 0.8;
         public static final double kBargeShootSpeed = 1.0;
         public static final double kBargeHoldSpeed = 0.4;
+        
+        // Special Shot Speeds
+        public static final double kSpinShotLeftSpeed = -1.0; // Clamped from -6 in original code
+        public static final double kSpinShotRightSpeed = 0.35;
+        public static final double kTroughRightSpeed = 0.35; // Used in coralAutoTrough
     }
 
     public static final class CommandConstants {
@@ -156,6 +168,7 @@ public final class Constants {
         public static final double kPivotV = 0.01;
         public static final double kPivotA = 0.01;
         
+        // TUNE: Climb Motion Magic
         public static final double kPivotCruiseVelocity = 100;
         public static final double kPivotAcceleration = 100;
         public static final double kPivotJerk = 800;
@@ -186,5 +199,6 @@ public final class Constants {
         public static final double kServoLooseAngle = 0.3;
         
         public static final double kPositionTolerance = 0.2;
+        public static final double kStickDeadband = 0.2;
     }
 }

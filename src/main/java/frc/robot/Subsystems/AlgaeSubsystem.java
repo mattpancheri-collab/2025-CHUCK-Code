@@ -6,9 +6,8 @@ import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.PositionDutyCycle;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.hardware.TalonFXS;
-import com.ctre.phoenix6.signals.InvertedValue;
+
 import com.ctre.phoenix6.signals.MotorArrangementValue;
-import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -18,13 +17,12 @@ public class AlgaeSubsystem extends SubsystemBase {
 
     // Singleton removed
 
-    private final TalonFXS algaeIntake; //FXS because minion motor
+    private final TalonFXS algaeIntake; // FXS because minion motor
     private final TalonFX algaePivot;
     private final TalonFXConfiguration algaePivotConfig;
     private final TalonFXSConfiguration algaeIntakeConfig;
 
     private final PositionDutyCycle positionDutyCycle = new PositionDutyCycle(0);
-
 
     public AlgaeSubsystem() {
 
@@ -32,25 +30,26 @@ public class AlgaeSubsystem extends SubsystemBase {
         algaePivot = new TalonFX(AlgaeConstants.kPivotMotorId);
 
         algaePivotConfig = new TalonFXConfiguration();
-            algaePivotConfig.Slot0.kP = AlgaeConstants.kPivotP;
-            algaePivotConfig.Slot0.kI = AlgaeConstants.kPivotI;
-            algaePivotConfig.Slot0.kD = AlgaeConstants.kPivotD;
-            algaePivotConfig.Slot0.kS = AlgaeConstants.kPivotS; 
-            algaePivotConfig.Slot0.kV = AlgaeConstants.kPivotV; 
-            algaePivotConfig.Slot0.kA = AlgaeConstants.kPivotA;
-         
-            algaePivotConfig.MotorOutput.NeutralMode = AlgaeConstants.kPivotNeutralMode;
-            algaePivotConfig.MotorOutput.Inverted =  AlgaeConstants.kPivotInverted;
+        algaePivotConfig.Slot0.kP = AlgaeConstants.kPivotP;
+        algaePivotConfig.Slot0.kI = AlgaeConstants.kPivotI;
+        algaePivotConfig.Slot0.kD = AlgaeConstants.kPivotD;
+        algaePivotConfig.Slot0.kS = AlgaeConstants.kPivotS;
+        algaePivotConfig.Slot0.kV = AlgaeConstants.kPivotV;
+        algaePivotConfig.Slot0.kA = AlgaeConstants.kPivotA;
 
-            algaePivot.getConfigurator().apply(algaePivotConfig);
+        algaePivotConfig.MotorOutput.NeutralMode = AlgaeConstants.kPivotNeutralMode;
+        algaePivotConfig.MotorOutput.Inverted = AlgaeConstants.kPivotInverted;
 
+        algaePivot.getConfigurator().apply(algaePivotConfig);
 
         algaeIntakeConfig = new TalonFXSConfiguration();
-            algaeIntakeConfig.MotorOutput.NeutralMode = AlgaeConstants.kIntakeNeutralMode;
-            algaeIntakeConfig.Commutation.MotorArrangement = MotorArrangementValue.Minion_JST; // Keeping this enum local or move if needed? Local is fine for enum.
+        algaeIntakeConfig.MotorOutput.NeutralMode = AlgaeConstants.kIntakeNeutralMode;
+        algaeIntakeConfig.Commutation.MotorArrangement = MotorArrangementValue.Minion_JST; // Keeping this enum local or
+                                                                                           // move if needed? Local is
+                                                                                           // fine for enum.
 
-            algaeIntake.getConfigurator().apply(algaeIntakeConfig);
-           
+        algaeIntake.getConfigurator().apply(algaeIntakeConfig);
+
     }
 
     public void setPosition(double position) {
@@ -62,7 +61,7 @@ public class AlgaeSubsystem extends SubsystemBase {
     }
 
     public boolean isAtPositionSetpoint(double position) {
-        return Math.abs(algaePivot.getPosition().getValueAsDouble() - position) < AlgaeConstants.kPositionTolerance; 
+        return Math.abs(algaePivot.getPosition().getValueAsDouble() - position) < AlgaeConstants.kPositionTolerance;
     }
 
     // Commands
@@ -96,7 +95,6 @@ public class AlgaeSubsystem extends SubsystemBase {
     public void algaeSpeed(double speed) {
         algaeIntake.setControl(new DutyCycleOut(speed));
     }
-
 
     @Override
     public void periodic() {
